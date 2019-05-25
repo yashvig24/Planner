@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pickle
 import os
+from MapEnvironment import MapEnvironment
+
 
 assert(nx.__version__ == '2.2' or nx.__version__ == '2.1')
 
@@ -15,7 +17,7 @@ def load_graph(filename):
 
 def make_graph(env, sampler, connection_radius, num_vertices, lazy=False, saveto='graph.pkl'):
     """
-    Returns a graph ont he passed environment.
+    Returns a graph on the passed environment.
     All vertices in the graph must be collision-free.
 
     Graph should have node attribute "config" which keeps a configuration in tuple.
@@ -38,7 +40,22 @@ def make_graph(env, sampler, connection_radius, num_vertices, lazy=False, saveto
 
     # Implement here
     # 1. Sample vertices
+    while nx.number_of_nodes(G) < num_vertices:
+        config = sampler.sample(1)
+        if MapEnvironment.state_validity_checker:
+            G.add_node(tuple(config[0]))
+
     # 2. Connect them with edges
+    for i in range(num_vertices):
+        for j in range(num_vertices):
+            node_i = list(nx.nodes(G))[i]
+            node_j = list(nx.nodes(G))[j]
+            if MapEnvironment.edge_validity_checker:
+                compute_dist = MapEnvironment.compute_distances
+                weight = compute_dist(env, node_i, node_j)
+                edges = (node_i, node_j, weight)
+                print(edges)
+                G.add_weighted_edges_from(edges)
 
     # Check for connectivity.
     num_connected_components = len(list(nx.connected_components(G)))

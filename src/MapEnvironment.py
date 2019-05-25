@@ -33,8 +33,16 @@ class MapEnvironment(object):
 
         # Implement here
         # 1. Check for state bounds within xlimit and ylimit
+        x0 = np.greater_equal(configs[:, 0], np.array([self.xlimit[0]] * num_configs))
+        xxlim = np.less_equal(configs[:, 0], np.array([self.xlimit[1]] * num_configs))
+        y0 = np.greater_equal(configs[:, 1], np.array([self.ylimit[0]] * num_configs))
+        yylim = np.less_equal(configs[:, 1], np.array([self.ylimit[1]] * num_configs))
+        x = np.logical_and(x0, xxlim)
+        y = np.logical_and(y0, yylim)
+        validity = np.logical_and(x, y)
 
         # 2. Check collision
+        # validity = np.array_equal(self.map[configs[:, 0], configs[:, 1]], np.array([0] * num_configs)) # works if self.map is an array
 
         return validity
 
@@ -58,7 +66,7 @@ class MapEnvironment(object):
         @return a float value
         """
         # Implement here
-
+        heuristic = np.linalg.norm(np.array(config) - np.array(goal))
         return heuristic
 
     def compute_distances(self, start_config, end_configs):
@@ -68,6 +76,8 @@ class MapEnvironment(object):
         @param end_configs: list of tuples of end confings
         @return 1D  numpy array of distances
         """
+        num_configs = len(end_configs)
+        distances = np.linalg.norm(np.tile(np.array(start_config), num_configs) - np.array(end_configs), axis = 1)
         return distances
 
     def generate_path(self, config1, config2):

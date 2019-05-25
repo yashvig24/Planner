@@ -16,4 +16,8 @@ class Sampler:
         """
 
         # Implement here
+        samples = np.zeros((num_samples, 2))
+        samples[:, 0] = np.random.uniform(self.xlimit[0], self.xlimit[1], num_samples)
+        samples[:, 1] = np.random.uniform(self.ylimit[0], self.ylimit[1], num_samples)
+
         return samples
