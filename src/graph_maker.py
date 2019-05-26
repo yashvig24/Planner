@@ -37,25 +37,36 @@ def make_graph(env, sampler, connection_radius, num_vertices, lazy=False, saveto
     @param saveto: File to save graph and the configurations
     """
     G = nx.Graph()
+    vertices_to_add = num_vertices
+    final_config = []
 
     # Implement here
     # 1. Sample vertices
-    while nx.number_of_nodes(G) < num_vertices:
-        config = sampler.sample(1)
-        if MapEnvironment.state_validity_checker:
-            G.add_node(tuple(config[0]))
+    while vertices_to_add != 0:
+        curr_config = sampler.sample(vertices_to_add)
+        validity = env.state_validity_checker(curr_config)
+        valid_config = curr_config[validity]
+        final_config.extend(valid_config)
+        vertices_added = np.sum(validity)
+        vertices_to_add -= vertices_added
+    
+    for i in range(num_vertices):
+        G.add_node(i, config=tuple(final_config[i]))
 
+    edges = []
     # 2. Connect them with edges
     for i in range(num_vertices):
+        curr_node = final_config[i]
         for j in range(num_vertices):
-            node_i = list(nx.nodes(G))[i]
-            node_j = list(nx.nodes(G))[j]
-            if MapEnvironment.edge_validity_checker:
-                compute_dist = MapEnvironment.compute_distances
-                weight = compute_dist(env, node_i, node_j)
-                edges = (node_i, node_j, weight)
-                print(edges)
-                G.add_weighted_edges_from(edges)
+            if j == i:
+                break
+            neigh = final_config[j]
+            valid, dist = env.edge_validity_checker(curr_node, neigh)
+            if valid and dist <= connection_radius:
+                tup = (i, j, dist)
+                edges.append(tup)
+    
+    G.add_weighted_edges_from(edges)
 
     # Check for connectivity.
     num_connected_components = len(list(nx.connected_components(G)))
@@ -86,6 +97,16 @@ def add_node(G, config, env, connection_radius):
 
     # Implement here
     # Add edges from the newly added node
+    edges = []
+    curr_node = np.array(list(G_configs[index]))
+    for j in range(index):
+        neigh = np.array(list(G_configs[j]))
+        valid, dist = env.edge_validity_checker(curr_node, neigh)
+        if valid and (dist <= connection_radius):
+            tup = (index, j, dist)
+            edges.append(tup)
+
+    G.add_weighted_edges_from(edges)
 
     # Check for connectivity.
     num_connected_components = len(list(nx.connected_components(G)))

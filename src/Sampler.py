@@ -16,8 +16,16 @@ class Sampler:
         """
 
         # Implement here
-        samples = np.zeros((num_samples, 2))
-        samples[:, 0] = np.random.uniform(self.xlimit[0], self.xlimit[1], num_samples)
-        samples[:, 1] = np.random.uniform(self.ylimit[0], self.ylimit[1], num_samples)
+        samples = np.empty((0,2), int)
 
-        return samples
+        vertices_to_add = num_samples
+        while vertices_to_add != 0:
+            random_vertices_x = np.random.uniform(self.xlimit[0], self.xlimit[1], (vertices_to_add, 1))
+            random_vertices_y = np.random.uniform(self.ylimit[0], self.ylimit[1], (vertices_to_add, 1))
+            random_vertices = np.append(random_vertices_x, random_vertices_y, axis = 1)
+            random_vertices = np.floor(random_vertices)
+            samples = np.append(samples, random_vertices, axis = 0)
+            samples = np.unique(random_vertices, axis = 0)
+            vertices_to_add -= len(samples)
+        
+        return samples.astype(int)

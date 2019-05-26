@@ -1,5 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
+import networkx as nx
+import random
 
 class MapEnvironment(object):
 
@@ -31,19 +33,25 @@ class MapEnvironment(object):
         if len(configs.shape) == 1:
             configs = configs.reshape(1, -1)
 
+        num_configs = len(configs)
+
         # Implement here
         # 1. Check for state bounds within xlimit and ylimit
         x0 = np.greater_equal(configs[:, 0], np.array([self.xlimit[0]] * num_configs))
-        xxlim = np.less_equal(configs[:, 0], np.array([self.xlimit[1]] * num_configs))
+        xxlim = np.less(configs[:, 0], np.array([self.xlimit[1]] * num_configs))
         y0 = np.greater_equal(configs[:, 1], np.array([self.ylimit[0]] * num_configs))
-        yylim = np.less_equal(configs[:, 1], np.array([self.ylimit[1]] * num_configs))
+        yylim = np.less(configs[:, 1], np.array([self.ylimit[1]] * num_configs))
         x = np.logical_and(x0, xxlim)
         y = np.logical_and(y0, yylim)
-        validity = np.logical_and(x, y)
+        lim = np.logical_and(x, y)
 
         # 2. Check collision
-        # validity = np.array_equal(self.map[configs[:, 0], configs[:, 1]], np.array([0] * num_configs)) # works if self.map is an array
+        configs = np.floor(configs)
+        configs = configs.astype(int)
+        col = self.map[tuple(configs.T)]
+        col = np.logical_not(col)
 
+        validity = np.logical_and(lim, col)
         return validity
 
     def edge_validity_checker(self, config1, config2):
@@ -53,8 +61,6 @@ class MapEnvironment(object):
         path, length = self.generate_path(config1, config2)
         if length == 0:
             return False, 0
-
-        valid = self.state_validity_checker(path)
 
         if not np.all(self.state_validity_checker(path)):
             return False, self.maxdist
@@ -76,8 +82,7 @@ class MapEnvironment(object):
         @param end_configs: list of tuples of end confings
         @return 1D  numpy array of distances
         """
-        num_configs = len(end_configs)
-        distances = np.linalg.norm(np.tile(np.array(start_config), num_configs) - np.array(end_configs), axis = 1)
+        distances = np.linalg.norm(np.array(end_configs) - np.array(start_config), ord = 2, axis = 1)
         return distances
 
     def generate_path(self, config1, config2):
@@ -85,8 +90,7 @@ class MapEnvironment(object):
         config2 = np.array(config2)
         dist = np.linalg.norm(config2 - config1)
         if dist == 0:
-            return config1, dist
-        direction = (config2 - config1) / dist
+            return np.array([config1]), dist
         steps = dist // self.stepsize + 1
 
         waypoints = np.array([np.linspace(config1[i], config2[i], steps) for i in range(2)]).transpose()
@@ -112,6 +116,9 @@ class MapEnvironment(object):
         @param waypoints list of node indices in the graph
         """
         print("Originally {} waypoints".format(len(waypoints)))
+        G_configs = nx.get_node_attributes(G, 'config')
+        G_configs = [G_configs[node] for node in G_configs]
+
         for _ in range(num_trials):
 
             if len(waypoints) == 2:
@@ -119,10 +126,21 @@ class MapEnvironment(object):
             # Implement here
 
             # 1. Choose two configurations
+            i = random.randint(0, len(waypoints) - 1)
+            j = random.randint(0, len(waypoints) - 1)
+            config1 = G_configs[i]
+            config2 = G_configs[j]
 
             # 2. Check for collision
+            path, dist = self.generate_path(config1, config2)
+            valid = self.state_validity_checker(path)
 
             # 3. Connect them if collision free
+            if np.all(valid):
+                G.add_weighted_edges_from([(config1, config2, dist)])
+            
+            # 4. Update Waypoints
+            waypoints = np.append(waypoints[:min(i, j) + 1], waypoints[max(i, j):])
 
         print("Path shortcut to {} waypoints".format(len(waypoints)))
         return waypoints
@@ -170,7 +188,7 @@ class MapEnvironment(object):
         for edge in edges:
             config1 = G.nodes[edge[0]]["config"]
             config2 = G.nodes[edge[1]]["config"]
-            path = self.generate_path(config1, config2)[0]
+            path, dist = self.generate_path(config1, config2)
             plt.plot(path[:,1], path[:,0], 'w')
 
         num_nodes = G.number_of_nodes()

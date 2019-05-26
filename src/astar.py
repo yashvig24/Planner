@@ -57,8 +57,7 @@ def astar_path(G, source, target, heuristic=None):
 
     if heuristic is None:
         # The default heuristic is h=0 - same as Dijkstra's algorithm
-        def heuristic(u, v):
-            return 0
+        heuristic = lambda n1, n2: 0
 
     push = heappush
     pop = heappop
