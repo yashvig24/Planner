@@ -61,8 +61,8 @@ def make_graph(env, sampler, connection_radius, num_vertices, lazy=False, saveto
             if j == i:
                 break
             neigh = final_config[j]
-            dist = np.linalg.norm(curr_node - neigh)
-            if(dist <= connection_radius):
+            valid, dist = env.edge_validity_checker(curr_node, neigh)
+            if valid and dist <= connection_radius:
                 tup = (i, j, dist)
                 edges.append(tup)
     
@@ -101,8 +101,8 @@ def add_node(G, config, env, connection_radius):
     curr_node = np.array(list(G_configs[index]))
     for j in range(index):
         neigh = np.array(list(G_configs[j]))
-        dist = np.linalg.norm(curr_node - neigh)
-        if(dist <= connection_radius):
+        valid, dist = env.edge_validity_checker(curr_node, neigh)
+        if valid and (dist <= connection_radius):
             tup = (index, j, dist)
             edges.append(tup)
 

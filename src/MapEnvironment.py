@@ -82,7 +82,6 @@ class MapEnvironment(object):
         @param end_configs: list of tuples of end confings
         @return 1D  numpy array of distances
         """
-        num_configs = len(end_configs)
         distances = np.linalg.norm(np.array(end_configs) - np.array(start_config), ord = 2, axis = 1)
         return distances
 
@@ -126,22 +125,22 @@ class MapEnvironment(object):
                 break
             # Implement here
 
-            # # 1. Choose two configurations
-            # i = random.randint(0, len(waypoints) - 1)
-            # j = random.randint(0, len(waypoints) - 1)
-            # config1 = G_configs[i]
-            # config2 = G_configs[j]
+            # 1. Choose two configurations
+            i = random.randint(0, len(waypoints) - 1)
+            j = random.randint(0, len(waypoints) - 1)
+            config1 = G_configs[i]
+            config2 = G_configs[j]
 
-            # # 2. Check for collision
-            # path, dist = self.generate_path(config1, config2)
-            # valid = self.state_validity_checker(path)
+            # 2. Check for collision
+            path, dist = self.generate_path(config1, config2)
+            valid = self.state_validity_checker(path)
 
-            # # 3. Connect them if collision free
-            # if np.all(valid):
-            #     G.add_weighted_edges_from([(config1, config2, dist)])
+            # 3. Connect them if collision free
+            if np.all(valid):
+                G.add_weighted_edges_from([(config1, config2, dist)])
             
-            # # 4. Update Waypoints
-            # waypoints = np.append(waypoints[:min(i, j) + 1], waypoints[max(i, j):])
+            # 4. Update Waypoints
+            waypoints = np.append(waypoints[:min(i, j) + 1], waypoints[max(i, j):])
 
         print("Path shortcut to {} waypoints".format(len(waypoints)))
         return waypoints
