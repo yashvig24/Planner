@@ -55,15 +55,22 @@ def make_graph(env, sampler, connection_radius, num_vertices, lazy=False, saveto
 
     edges = []
     # 2. Connect them with edges
+
+    # if lazy: connect all edges
+    # if not lazy: only connect edges not passing through any obstacles
     for i in range(num_vertices):
         curr_node = final_config[i]
         for j in range(num_vertices):
             if j == i:
-                break
+                continue
             neigh = final_config[j]
-            valid, dist = env.edge_validity_checker(curr_node, neigh)
-            if valid and dist <= connection_radius:
-                tup = (i, j, dist)
+            if not lazy:
+                valid, dist = env.edge_validity_checker(curr_node, neigh)
+                if (valid) and dist <= connection_radius:
+                    tup = (i, j, dist)
+                    edges.append(tup)
+            else:
+                tup = (i, j, np.linalg.norm(curr_node - neigh))
                 edges.append(tup)
     
     G.add_weighted_edges_from(edges)
@@ -81,7 +88,7 @@ def make_graph(env, sampler, connection_radius, num_vertices, lazy=False, saveto
     return G
 
 
-def add_node(G, config, env, connection_radius):
+def add_node(G, config, env, connection_radius, lazy):
     """
     This function should add a node to an existing graph G.
     @param G graph, constructed using make_graph
@@ -101,9 +108,13 @@ def add_node(G, config, env, connection_radius):
     curr_node = np.array(list(G_configs[index]))
     for j in range(index):
         neigh = np.array(list(G_configs[j]))
-        valid, dist = env.edge_validity_checker(curr_node, neigh)
-        if valid and (dist <= connection_radius):
-            tup = (index, j, dist)
+        if not lazy:
+            valid, dist = env.edge_validity_checker(curr_node, neigh)
+            if valid and (dist <= connection_radius):
+                tup = (index, j, dist)
+                edges.append(tup)
+        else:
+            tup = (index, j, np.linalg.norm(curr_node - neigh))
             edges.append(tup)
 
     G.add_weighted_edges_from(edges)

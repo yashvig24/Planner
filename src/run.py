@@ -40,14 +40,19 @@ if __name__ == "__main__":
         connection_radius=args.connection_radius,
         lazy=args.lazy)
 
+    print("made graph")
+
     # Add start and goal nodes
+    print("adding start node")
     G, start_id = graph_maker.add_node(G, args.start, env=planning_env,
-        connection_radius=args.connection_radius)
+        connection_radius=args.connection_radius, lazy=args.lazy)
+
+    print("adding end node")
     G, goal_id = graph_maker.add_node(G, args.goal, env=planning_env,
-        connection_radius=args.connection_radius)
+        connection_radius=args.connection_radius, lazy=args.lazy)
 
     # Uncomment this to visualize the graph
-    planning_env.visualize_graph(G)
+    # planning_env.visualize_graph(G)
 
     try:
         heuristic = lambda n1, n2: planning_env.compute_heuristic(
@@ -56,6 +61,7 @@ if __name__ == "__main__":
         if args.lazy:
             weight = lambda n1, n2: planning_env.edge_validity_checker(
                 G.nodes[n1]['config'], G.nodes[n2]['config'])
+            print("calling lazy")
             path = lazy_astar.astar_path(G,
                 source=start_id, target=goal_id, weight=weight, heuristic=heuristic)
         else:
