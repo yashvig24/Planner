@@ -44,8 +44,9 @@ def astar_path(G, source, target, weight, heuristic=None):
 
     if heuristic is None:
         # The default heuristic is h=0 - same as Dijkstra's algorithm
-        def heuristic(u, v):
-            return 0
+        heuristic = lambda n1, n2: 0
+
+    print("started finding best path")
 
     push = heappush
     pop = heappop
@@ -68,7 +69,44 @@ def astar_path(G, source, target, weight, heuristic=None):
     while queue:
         # Pop the smallest item from queue.
         _, __, curnode, dist, parent = pop(queue)
+        if curnode == target:
+            path = [curnode]
+            node = parent
+            while node is not None:
+                path.append(node)
+                node = explored[node]
+            path.reverse()
+            print("done")
+            return path
 
-        # Implement here using astar.py as your reference.
+        if curnode in explored:
+            continue
+        
+        explored[curnode] = parent
+
+        for neighbor, w in G[curnode].items():
+            if neighbor in explored:
+                continue
+
+            # lazy A*: push the neighbor into the queue only if the edge between 
+            # curnode and neighbor is a valid edge (does not cross obstacles)
+            valid, _ = weight(curnode, neighbor)
+            if not valid:
+                continue
+
+            ncost = dist + w.get('weight', 1)
+            if neighbor in enqueued:
+                qcost, h = enqueued[neighbor]
+                # if qcost <= ncost, a less costly path from the
+                # neighbor to the source was already determined.
+                # Therefore, we won't attempt to push this neighbor
+                # to the queue
+                if qcost <= ncost:
+                    continue
+            else:
+                h = heuristic(neighbor, target)
+
+            enqueued[neighbor] = ncost, h
+            push(queue, (ncost + h, next(c), neighbor, ncost, curnode))
 
     raise nx.NetworkXNoPath("Node %s not reachable from %s" % (source, target))
