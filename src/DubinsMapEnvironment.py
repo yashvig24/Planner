@@ -17,9 +17,9 @@ class DubinsMapEnvironment(MapEnvironment):
         @param end_configs: list of tuples of end configs
         @return numpy array of distances
         """
-
         # Implement here
         px, py, pyaw, distances = dubins_path_planning(np.tile(np.array(start_config), len(end_configs)), np.array(end_configs))
+        print(distances)
         return distances
 
     def compute_heuristic(self, config, goal):
@@ -27,7 +27,7 @@ class DubinsMapEnvironment(MapEnvironment):
         Use the Dubins path length from config to goal as the heuristic distance.
         """
         # Implement here
-        px, py, pyaw, heuristic = dubins_path_planning(config, goal, curvature)
+        px, py, pyaw, heuristic = dubins_path_planning(config, goal, self.curvature)
         return heuristic
 
     def generate_path(self, config1, config2):
@@ -37,8 +37,7 @@ class DubinsMapEnvironment(MapEnvironment):
         Use dubins_path_planning to get a path
         return: (numpy array of [x, y, yaw], curve length)
         """
-
         # Implement here
-        px, py, pyaw, clen = dubins_path_planning(config1, config2, curvature)
+        px, py, pyaw, clen = dubins_path_planning(config1, config2, self.curvature)
         path = np.array([px, py, pyaw])
         return path, clen

@@ -46,7 +46,7 @@ class MapEnvironment(object):
         lim = np.logical_and(x, y)
 
         # 2. Check collision
-        configs = np.floor(configs)
+        configs = np.floor(configs[:, 0:2])
         configs = configs.astype(int)
         col = self.map[tuple(configs.T)]
         col = np.logical_not(col)
