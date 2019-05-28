@@ -34,7 +34,7 @@ class MapEnvironment(object):
             configs = configs.reshape(1, -1)
 
         num_configs = len(configs)
-
+        
         # Implement here
         # 1. Check for state bounds within xlimit and ylimit
         x0 = np.greater_equal(configs[:, 0], np.array([self.xlimit[0]] * num_configs))
@@ -46,8 +46,10 @@ class MapEnvironment(object):
         lim = np.logical_and(x, y)
 
         # 2. Check collision
+        
         configs = np.floor(configs[:, 0:2])
         configs = configs.astype(int)
+        
         col = self.map[tuple(configs.T)]
         col = np.logical_not(col)
 

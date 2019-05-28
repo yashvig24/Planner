@@ -98,6 +98,8 @@ class ROSPlanner:
         """
         # Implement here
         # Plan with lazy_astar
+        path = lazy_astar.astar_path(G, source=start, target=goal, weight=self.weight_func, heuristic=self.heuristic_func)
+
         return path
 
     def plan_multi_goals(self, start):
@@ -151,10 +153,10 @@ class ROSPlanner:
 
         print("path")
         print(path)
-        print "Sending path..."
+        print("Sending path...")
         controller = rospy.ServiceProxy("/controller/follow_path", FollowPath())
         success = controller(path)
-        print "Controller started.", success
+        print("Controller started.", success)
         return success
 
     def get_map(self):
@@ -165,9 +167,9 @@ class ROSPlanner:
         '''
         srv_name = "/static_map" #self.params.get_str("static_map", default="/static_map")
         #self.logger.debug("Waiting for map service")
-        print "Waiting for map service"
+        print("Waiting for map service")
         rospy.wait_for_service(srv_name)
-        print "Map service started"
+        print("Map service started")
         #self.logger.debug("Map service started")
 
         map_msg = rospy.ServiceProxy(srv_name, GetMap)().map

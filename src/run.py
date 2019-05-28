@@ -52,7 +52,7 @@ if __name__ == "__main__":
         connection_radius=args.connection_radius, lazy=args.lazy)
 
     # Uncomment this to visualize the graph
-    # planning_env.visualize_graph(G)
+    planning_env.visualize_graph(G)
 
     try:
         heuristic = lambda n1, n2: planning_env.compute_heuristic(

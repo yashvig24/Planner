@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import matplotlib
 from matplotlib import pyplot as plt
 from Dubins import dubins_path_planning
@@ -18,8 +19,9 @@ class DubinsMapEnvironment(MapEnvironment):
         @return numpy array of distances
         """
         # Implement here
+        start_config[2] = math.radians(start_config[2])
+        end_configs[:, 2] = math.radians(end_configs[:, 2])
         px, py, pyaw, distances = dubins_path_planning(np.tile(np.array(start_config), len(end_configs)), np.array(end_configs))
-        print(distances)
         return distances
 
     def compute_heuristic(self, config, goal):
@@ -38,6 +40,9 @@ class DubinsMapEnvironment(MapEnvironment):
         return: (numpy array of [x, y, yaw], curve length)
         """
         # Implement here
+        config1[2] = math.radians(config1[2])
+        config2[2] = math.radians(config2[2])
         px, py, pyaw, clen = dubins_path_planning(config1, config2, self.curvature)
-        path = np.array([px, py, pyaw])
+        path = np.array([px, py, pyaw]).transpose()
+        #print(path, clen)
         return path, clen
