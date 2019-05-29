@@ -33,6 +33,7 @@ if __name__ == "__main__":
     args.start[2] = math.radians(args.start[2])
     args.goal[2] = math.radians(args.goal[2])
     times = np.empty([1,10])
+    lengths = np.empty([1,10])
 
     map_data = np.loadtxt(args.map).astype(np.int)
 
@@ -51,7 +52,7 @@ if __name__ == "__main__":
             connection_radius=args.connection_radius, lazy = True, start_from_config=False)
 
         # Uncomment this to visualize the graph
-        planning_env.visualize_graph(G)
+        #planning_env.visualize_graph(G)
 
         try:
             heuristic = lambda n1, n2: planning_env.compute_heuristic(
@@ -60,12 +61,21 @@ if __name__ == "__main__":
             if args.lazy:
                 weight = lambda n1, n2: planning_env.edge_validity_checker(
                     G.nodes[n1]['config'], G.nodes[n2]['config'])
+                start_time = time.time()
                 path = lazy_astar.astar_path(G,
                     source=start_id, target=goal_id, weight=weight, heuristic=heuristic)
+                elapsed_time = time.time() - start_time
+                print("time elapsed:", elapsed_time)
+                times = np.append(times, elapsed_time)
+                lengths = np.append(lengths, lazy_astar.path_length(G, path))
                 
             else:
-                path = astar.astar_path(G,
-                    source=start_id, target=goal_id, heuristic=heuristic)
+                start_time = time.time()
+                path = astar.astar_path(G, source=start_id, target=goal_id, heuristic=heuristic)
+                elapsed_time = time.time() - start_time
+                print("time elapsed:", elapsed_time)
+                times = np.append(times, elapsed_time)
+                lengths = np.append(lengths, astar.path_length(G, path))
 
             planning_env.visualize_plan(G, path, saveto = 'dubinsplannedgraph(%d).png' % i)
         except nx.NetworkXNoPath as e:

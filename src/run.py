@@ -29,6 +29,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     times = np.empty([1,10])
+    lengths = np.empty([1,10])
+
     # First setup the environment
     map_data = np.loadtxt(args.map).astype(np.int)
     planning_env = MapEnvironment(map_data)
@@ -68,12 +70,14 @@ if __name__ == "__main__":
                 elapsed_time = time.time() - start_time
                 print("time elapsed:", elapsed_time)
                 times = np.append(times, elapsed_time)
+                lengths = np.append(lengths, lazy_astar.path_length(G, path))
             else:
                 start_time = time.time()
                 path = astar.astar_path(G, source=start_id, target=goal_id, heuristic=heuristic)
                 elapsed_time = time.time() - start_time
                 print("time elapsed:", elapsed_time)
                 times = np.append(times, elapsed_time)
+                lengths = np.append(lengths, astar.path_length(G, path))
             planning_env.visualize_plan(G, path, saveto = 'plannedgraph(%d).png' % i )
         except nx.NetworkXNoPath as e:
             print(e)
