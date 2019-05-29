@@ -28,46 +28,54 @@ if __name__ == "__main__":
     parser.add_argument('--lazy', action='store_true')
 
     args = parser.parse_args()
-
+    times = np.empty([1,10])
     # First setup the environment
     map_data = np.loadtxt(args.map).astype(np.int)
     planning_env = MapEnvironment(map_data)
+    for i in range(9):
+        # Make a graph
+        G = graph_maker.make_graph(planning_env,
+            sampler=Sampler(planning_env),
+            num_vertices=args.num_vertices,
+            connection_radius=args.connection_radius,
+            directed = False,
+            lazy=args.lazy,
+            saveto = 'graph(%d).pkl' % i )
 
-    # Make a graph
-    G = graph_maker.make_graph(planning_env,
-        sampler=Sampler(planning_env),
-        num_vertices=args.num_vertices,
-        connection_radius=args.connection_radius,
-        lazy=args.lazy)
+        print("made graph")
 
-    print("made graph")
+        # Add start and goal nodes
+        G, start_id = graph_maker.add_node(G, args.start, env=planning_env,
+            connection_radius=args.connection_radius, lazy = False, start_from_config=True)
 
-    # Add start and goal nodes
-    print("adding start node")
-    G, start_id = graph_maker.add_node(G, args.start, env=planning_env,
-        connection_radius=args.connection_radius, lazy=args.lazy)
+        G, goal_id = graph_maker.add_node(G, args.goal, env=planning_env,
+            connection_radius=args.connection_radius, lazy = False, start_from_config=False)
 
-    print("adding end node")
-    G, goal_id = graph_maker.add_node(G, args.goal, env=planning_env,
-        connection_radius=args.connection_radius, lazy=args.lazy)
 
-    # Uncomment this to visualize the graph
-    planning_env.visualize_graph(G)
+        # Uncomment this to visualize the graph
+        # planning_env.visualize_graph(G)
 
-    try:
-        heuristic = lambda n1, n2: planning_env.compute_heuristic(
-            G.nodes[n1]['config'], G.nodes[n2]['config'])
-
-        if args.lazy:
-            weight = lambda n1, n2: planning_env.edge_validity_checker(
+        try:
+            heuristic = lambda n1, n2: planning_env.compute_heuristic(
                 G.nodes[n1]['config'], G.nodes[n2]['config'])
-            print("calling lazy")
-            path = lazy_astar.astar_path(G,
-                source=start_id, target=goal_id, weight=weight, heuristic=heuristic)
-        else:
-            path = astar.astar_path(G,
-                source=start_id, target=goal_id, heuristic=heuristic)
 
-        planning_env.visualize_plan(G, path)
-    except nx.NetworkXNoPath as e:
-        print(e)
+            if args.lazy:
+                weight = lambda n1, n2: planning_env.edge_validity_checker(
+                    G.nodes[n1]['config'], G.nodes[n2]['config'])
+                print("calling lazy")
+                start_time = time.time()
+                path = lazy_astar.astar_path(G, source=start_id, target=goal_id, weight=weight, heuristic=heuristic)
+                elapsed_time = time.time() - start_time
+                print("time elapsed:", elapsed_time)
+                times = np.append(times, elapsed_time)
+            else:
+                start_time = time.time()
+                path = astar.astar_path(G, source=start_id, target=goal_id, heuristic=heuristic)
+                elapsed_time = time.time() - start_time
+                print("time elapsed:", elapsed_time)
+                times = np.append(times, elapsed_time)
+            planning_env.visualize_plan(G, path, saveto = 'plannedgraph(%d).png' % i )
+        except nx.NetworkXNoPath as e:
+            print(e)
+    print(np.average(times))
+    print(times)

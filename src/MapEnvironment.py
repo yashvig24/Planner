@@ -47,7 +47,7 @@ class MapEnvironment(object):
 
         # 2. Check collision
         
-        configs = np.floor(configs[:, 0:2])
+        configs = np.round(configs[:, 0:2])
         configs = configs.astype(int)
         
         col = self.map[tuple(configs.T)]
@@ -64,7 +64,7 @@ class MapEnvironment(object):
         if length == 0:
             return False, 0
 
-        if not np.all(self.state_validity_checker(path)):
+        if not np.all(self.state_validity_checker(path)):    
             return False, self.maxdist
         return True, length
 
@@ -74,7 +74,7 @@ class MapEnvironment(object):
         @return a float value
         """
         # Implement here
-        heuristic = np.linalg.norm(np.array(config) - np.array(goal))
+        heuristic = float(np.linalg.norm(np.array(config) - np.array(goal)))
         return heuristic
 
     def compute_distances(self, start_config, end_configs):

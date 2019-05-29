@@ -6,6 +6,7 @@ import os
 from MapEnvironment import MapEnvironment
 
 
+
 assert(nx.__version__ == '2.2' or nx.__version__ == '2.1')
 
 def load_graph(filename):
@@ -15,7 +16,7 @@ def load_graph(filename):
         print('Loaded graph from {}'.format(f))
     return data['G']
 
-def make_graph(env, sampler, connection_radius, num_vertices, lazy=False, saveto='graph.pkl'):
+def make_graph(env, sampler, connection_radius, num_vertices, directed = True, lazy=False, saveto='graph.pkl'):
     """
     Returns a graph on the passed environment.
     All vertices in the graph must be collision-free.
@@ -36,9 +37,15 @@ def make_graph(env, sampler, connection_radius, num_vertices, lazy=False, saveto
     @param lazy: If true, edges are made without checking collision.
     @param saveto: File to save graph and the configurations
     """
-    G = nx.Graph()
+    if directed:
+        G = nx.DiGraph()
+    else:
+        G = nx.Graph()
+
+    
     vertices_to_add = num_vertices
     final_config = []
+    
 
     # Implement here
     # 1. Sample vertices
@@ -88,13 +95,15 @@ def make_graph(env, sampler, connection_radius, num_vertices, lazy=False, saveto
     return G
 
 
-def add_node(G, config, env, connection_radius, lazy):
+def add_node(G, config, env, connection_radius, lazy, start_from_config):
     """
     This function should add a node to an existing graph G.
     @param G graph, constructed using make_graph
     @param config Configuration to add to the graph
     @param env Environment on which the graph is constructed
     @param connection_radius Maximum distance to connect vertices
+    @param lazy if lazy A*
+    @param start_from_config True if config is the starting configuration
     """
     # new index of the configuration
     index = G.number_of_nodes()

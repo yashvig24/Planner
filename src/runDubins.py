@@ -32,42 +32,46 @@ if __name__ == "__main__":
     args = parser.parse_args()
     args.start[2] = math.radians(args.start[2])
     args.goal[2] = math.radians(args.goal[2])
-
+    times = np.empty([1,10])
 
     map_data = np.loadtxt(args.map).astype(np.int)
 
     # First setup the environment and the robot.
     planning_env = DubinsMapEnvironment(map_data, args.curvature)
+    for i in range(9):
+        G = graph_maker.make_graph(planning_env,
+            sampler=DubinsSampler(planning_env),
+            num_vertices=args.num_vertices,
+            connection_radius=args.connection_radius,
+            saveto = 'dubinsgraph(%d).pkl' % i)
 
-    G = graph_maker.make_graph(planning_env,
-        sampler=DubinsSampler(planning_env),
-        num_vertices=args.num_vertices,
-        connection_radius=args.connection_radius)
+        G, start_id = graph_maker.add_node(G, args.start, env=planning_env,
+            connection_radius=args.connection_radius, lazy = True, start_from_config=True)
+        G, goal_id = graph_maker.add_node(G, args.goal, env=planning_env,
+            connection_radius=args.connection_radius, lazy = True, start_from_config=False)
 
-    G, start_id = graph_maker.add_node(G, args.start, env=planning_env,
-        connection_radius=args.connection_radius)
-    G, goal_id = graph_maker.add_node(G, args.goal, env=planning_env,
-        connection_radius=args.connection_radius)
+        # Uncomment this to visualize the graph
+        planning_env.visualize_graph(G)
 
-    # Uncomment this to visualize the graph
-    planning_env.visualize_graph(G)
-
-    try:
-        heuristic = lambda n1, n2: planning_env.compute_heuristic(
-            G.nodes[n1]['config'], G.nodes[n2]['config'])
-
-        if args.lazy:
-            weight = lambda n1, n2: planning_env.edge_validity_checker(
+        try:
+            heuristic = lambda n1, n2: planning_env.compute_heuristic(
                 G.nodes[n1]['config'], G.nodes[n2]['config'])
-            path = lazy_astar.astar_path(G,
-                source=start_id, target=goal_id, weight=weight, heuristic=heuristic)
-        else:
-            path = astar.astar_path(G,
-                source=start_id, target=goal_id, heuristic=heuristic)
 
-        planning_env.visualize_plan(G, path)
-    except nx.NetworkXNoPath as e:
-        print(e)
+            if args.lazy:
+                weight = lambda n1, n2: planning_env.edge_validity_checker(
+                    G.nodes[n1]['config'], G.nodes[n2]['config'])
+                path = lazy_astar.astar_path(G,
+                    source=start_id, target=goal_id, weight=weight, heuristic=heuristic)
+                
+            else:
+                path = astar.astar_path(G,
+                    source=start_id, target=goal_id, heuristic=heuristic)
+
+            planning_env.visualize_plan(G, path, saveto = 'dubinsplannedgraph(%d).png' % i)
+        except nx.NetworkXNoPath as e:
+            print(e)
 
 
-    import IPython; IPython.embed()
+    #import IPython; IPython.embed()
+    print(np.average(times))
+    print(times)

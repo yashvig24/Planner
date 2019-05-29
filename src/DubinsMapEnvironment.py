@@ -43,6 +43,5 @@ class DubinsMapEnvironment(MapEnvironment):
         config1[2] = math.radians(config1[2])
         config2[2] = math.radians(config2[2])
         px, py, pyaw, clen = dubins_path_planning(config1, config2, self.curvature)
-        path = np.array([px, py, pyaw]).transpose()
-        #print(path, clen)
+        path = np.array([px, py, pyaw])
         return path, clen

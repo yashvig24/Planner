@@ -17,7 +17,7 @@ class DubinsSampler:
         samples = np.zeros((num_samples, 3))
         samples[:, 0] = np.random.uniform(self.xlimit[0], self.xlimit[1], num_samples)
         samples[:, 1] = np.random.uniform(self.ylimit[0], self.ylimit[1], num_samples)
-        samples[:, 2] = np.random.uniform(-30, 30, num_samples) #correct max/min headings?
+        samples[:, 2] = np.random.uniform(-20, 20, num_samples) 
 
         # Implement here
         return samples
